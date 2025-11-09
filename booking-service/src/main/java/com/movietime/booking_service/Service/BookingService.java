@@ -1,5 +1,9 @@
 package com.movietime.booking_service.Service;
 
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -8,12 +12,16 @@ import org.springframework.stereotype.Service;
 
 import com.movietime.booking_service.DTO.CreateBookingRequest;
 import com.movietime.booking_service.DTO.SeatSelection;
+import com.movietime.booking_service.Model.BookedSeat;
 import com.movietime.booking_service.Model.Booking;
 import com.movietime.booking_service.Model.BookingSeat;
 import com.movietime.booking_service.Model.BookingStatus;
+import com.movietime.booking_service.Repository.BookedSeatRepository;
 import com.movietime.booking_service.Repository.BookingRepository;
 import com.movietime.booking_service.Repository.BookingSeatRepository;
+import com.movietime.booking_service.Response.SeatStatusResponse;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -23,23 +31,22 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final BookingSeatRepository bookingSeatRepository;
     private final StringRedisTemplate redisTemplate;
+    private final BookedSeatRepository bookedSeatRepository;
 
     private static final long LOCK_TTL = 600; // seconds
 
     public Booking createBooking(CreateBookingRequest req) {
         Long showId = req.getShowId();
         String userId = req.getUserId();
-
         // 1️ Try locking each seat in Redis
         for (SeatSelection seat : req.getSeats()) {
             String key = "lock:show:" + showId + ":seat:" + seat.getSeatId();
-            Boolean success = redisTemplate.opsForValue()
-                    .setIfAbsent(key, userId, LOCK_TTL, TimeUnit.SECONDS);
+            String value = seat.getRowLabel() + "-" + seat.getSeatNumber() + "-" + seat.getSeatType();
+            Boolean success = redisTemplate.opsForValue().setIfAbsent(key, value, LOCK_TTL, TimeUnit.SECONDS);
             if (Boolean.FALSE.equals(success)) {
                 throw new IllegalStateException("Seat already locked or booked: " + seat.getSeatId());
             }
         }
-
         // 2️ Create Booking record
         Booking booking = Booking.builder()
                 .showId(showId)
@@ -64,6 +71,69 @@ public class BookingService {
             bookingSeatRepository.save(seatEntity);
         }
         return booking;
+    }
+    @Transactional
+    public Booking confirmPayment(Long bookingId, String paymentId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
+
+        // Ensure booking hasn’t already been processed
+        if (booking.getStatus() != BookingStatus.PENDING_PAYMENT) {
+            throw new IllegalStateException("Booking already processed");
+        }
+
+        // Update booking status and payment reference
+        booking.setStatus(BookingStatus.CONFIRMED);
+        booking.setPaymentId(paymentId);
+        bookingRepository.save(booking);
+
+        // Fetch seats for this booking
+        List<BookingSeat> seats = bookingSeatRepository.findByBookingId(booking.getId());
+
+        for (BookingSeat seat : seats) {
+            // Save into booked_seats table (ensures seat uniqueness per show)
+            bookedSeatRepository.save(
+                    BookedSeat.builder()
+                            .showId(booking.getShowId())
+                            .seatId(seat.getSeatId())
+                            .bookingId(booking.getId())
+                            .bookedAt(Instant.now())
+                            .build()
+            );
+
+            // Remove Redis lock if present
+            String key = "lock:show:" + booking.getShowId() + ":seat:" + seat.getSeatId();
+            redisTemplate.delete(key);
+        }
+
+        return booking;
+    }
+
+    public List<Long> getBookedSeats(Long showId) {
+        return bookedSeatRepository.findByShowId(showId)
+                .stream()
+                .map(BookedSeat::getSeatId)
+                .toList();
+    }
+    public SeatStatusResponse getSeatStatus(Long showId) {
+        // Get booked seats from DB
+        List<Long> bookedSeatIds = bookedSeatRepository
+            .findByShowId(showId)
+            .stream()
+            .map(BookedSeat::getSeatId)
+            .toList();
+
+        // Get locked seats from Redis
+        Set<String> lockedKeys = redisTemplate.keys("lock:show:" + showId + ":seat:*");
+        List<Long> lockedSeatIds = new ArrayList<>();
+        if (lockedKeys != null) {
+            for (String key : lockedKeys) {
+                String[] parts = key.split(":seat:");
+                lockedSeatIds.add(Long.valueOf(parts[1]));
+            }
+        }
+
+        return new SeatStatusResponse(bookedSeatIds, lockedSeatIds);
     }
 }
 
