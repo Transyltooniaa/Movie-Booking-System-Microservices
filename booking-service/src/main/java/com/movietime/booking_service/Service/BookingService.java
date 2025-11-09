@@ -35,9 +35,8 @@ public class BookingService {
 
     private static final long LOCK_TTL = 600; // seconds
 
-    public Booking createBooking(CreateBookingRequest req) {
+    public Booking createBooking(CreateBookingRequest req, String userId) {
         Long showId = req.getShowId();
-        String userId = req.getUserId();
         // 1️ Try locking each seat in Redis
         for (SeatSelection seat : req.getSeats()) {
             String key = "lock:show:" + showId + ":seat:" + seat.getSeatId();

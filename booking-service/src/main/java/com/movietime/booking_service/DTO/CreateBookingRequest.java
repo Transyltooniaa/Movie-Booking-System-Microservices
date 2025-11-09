@@ -7,7 +7,6 @@ import lombok.Data;
 @Data
 public class CreateBookingRequest {
     private Long showId;
-    private String userId;
     private BigDecimal totalAmount;
     private List<SeatSelection> seats;
 }

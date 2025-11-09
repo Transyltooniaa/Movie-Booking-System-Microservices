@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,8 +22,8 @@ public class BookingController {
     @Autowired
     private BookingService bookingService;
     @PostMapping("/create")
-    public ResponseEntity<Booking> createBooking(@RequestBody CreateBookingRequest req) {
-        Booking booking = bookingService.createBooking(req);
+    public ResponseEntity<Booking> createBooking(@RequestHeader("X-User-Email") String userEmail,@RequestBody CreateBookingRequest req) {
+        Booking booking = bookingService.createBooking(req, userEmail);
         return ResponseEntity.ok(booking);
     }
     @PostMapping("/confirm/{bookingId}")
