@@ -1,5 +1,6 @@
 package com.movietime.booking_service.Service;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.movietime.booking_service.DTO.CreateBookingRequest;
@@ -167,7 +169,7 @@ public class BookingService {
 
         return new SeatStatusResponse(bookedSeatIds, lockedSeatIds);
     }
-     public List<BookingResponseDTO> getBookingsByUserId(String userId) {
+    public List<BookingResponseDTO> getBookingsByUserId(String userId) {
         return bookingRepository.findByUserId(userId).stream().map(booking -> {
             BookingResponseDTO dto = new BookingResponseDTO();
             dto.setId(booking.getId());
@@ -188,6 +190,26 @@ public class BookingService {
 
             return dto;
         }).collect(Collectors.toList());
+    }
+    @Scheduled(fixedRate = 60000) // runs every minute
+    @Transactional
+    public void cancelExpiredBookings() {
+        Instant now = Instant.now();
+        List<Booking> pendingBookings = bookingRepository.findByStatus(BookingStatus.PENDING_PAYMENT);
+
+        for (Booking booking : pendingBookings) {
+            // check if Redis key still exists for any of its seats
+            boolean anyLocked = booking.getSeats().stream().anyMatch(seat -> {
+                String key = "lock:show:" + booking.getShowId() + ":seat:" + seat.getSeatId();
+                return Boolean.TRUE.equals(redisTemplate.hasKey(key));
+            });
+
+            if (!anyLocked) {
+                // All locks expired → cancel booking
+                booking.setStatus(BookingStatus.CANCELLED);
+                bookingRepository.save(booking);
+            }
+        }
     }
 }
 
