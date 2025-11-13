@@ -3,16 +3,20 @@ package com.movietime.booking_service.Service;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import com.movietime.booking_service.Config.RabbitMQConfig;
 import com.movietime.booking_service.DTO.CreateBookingRequest;
 import com.movietime.booking_service.DTO.SeatSelection;
 import com.movietime.booking_service.Model.BookedSeat;
@@ -37,6 +41,7 @@ public class BookingService {
     private final BookingSeatRepository bookingSeatRepository;
     private final StringRedisTemplate redisTemplate;
     private final BookedSeatRepository bookedSeatRepository;
+    private final RabbitTemplate rabbitTemplate;
 
     private static final long LOCK_TTL = 600; // seconds
 
@@ -128,7 +133,7 @@ public class BookingService {
             String key = "lock:show:" + booking.getShowId() + ":seat:" + seat.getSeatId();
             redisTemplate.delete(key);
         }
-
+        publishBookingConfirmed(booking);
         return BookingResponse.builder()
             .id(booking.getId())
             .showId(booking.getShowId())
@@ -245,6 +250,21 @@ public class BookingService {
             .createdAt(booking.getCreatedAt())
             .updatedAt(booking.getUpdatedAt())
             .build();
+    }
+
+    public void publishBookingConfirmed(Booking booking) {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("bookingId", booking.getId());
+        payload.put("userEmail", booking.getUserId());
+        payload.put("status", booking.getStatus().name());
+
+        rabbitTemplate.convertAndSend(
+                RabbitMQConfig.BOOKING_EXCHANGE,
+                RabbitMQConfig.BOOKING_ROUTING_KEY,
+                payload
+        );
+
+        System.out.println("Published booking confirmation event for: " + booking.getId());
     }
 }
 
