@@ -237,8 +237,19 @@ services:
     build: ./api-gateway
     container_name: api_gateway
     ports:
-      - "8085:8080"
+      - "8085:8085"
     depends_on:
+      - eureka
+    networks:
+      - movie-net
+
+  user_service:
+    build: ./user-service
+    container_name: user_service
+    ports:
+      - "8083:8083"
+    depends_on:
+      - user-db
       - eureka
     networks:
       - movie-net
@@ -248,7 +259,7 @@ services:
     build: ./booking-service
     container_name: booking_service
     ports:
-      - "8081:8081"
+      - "8087:8087"
     depends_on:
       - booking-db
       - rabbitmq
@@ -262,7 +273,7 @@ services:
     build: ./payment-service
     container_name: payment_service
     ports:
-      - "8082:8082"
+      - "8089:8089"
     depends_on:
       - rabbitmq
       - eureka
@@ -274,7 +285,7 @@ services:
     build: ./movie-service
     container_name: movie_service
     ports:
-      - "8083:8083"
+      - "8086:8086"
     depends_on:
       - movie-db
       - eureka
@@ -286,7 +297,7 @@ services:
     build: ./notification-service
     container_name: notification_service
     ports:
-      - "8084:8084"
+      - "8088:8088"
     depends_on:
       - rabbitmq
       - eureka
