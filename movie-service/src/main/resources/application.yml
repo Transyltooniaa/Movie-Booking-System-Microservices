@@ -5,19 +5,19 @@
 #   application:
 #     name: movie-service
 
-#   datasource:
-#     url: jdbc:postgresql://localhost:5432/moviesvc
-#     username: moviesvc
-#     password: moviesvc
-#   jpa:
-#     hibernate:
-#       ddl-auto: create-drop
-#     properties:
-#       hibernate:
-#         dialect: org.hibernate.dialect.PostgreSQLDialect
-#   jackson:
-#     serialization:
-#       WRITE_DATES_AS_TIMESTAMPS: false
+  datasource:
+    url: jdbc:postgresql://localhost:5434/movie_db
+    username: movie_user
+    password: movie_pass
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  jackson:
+    serialization:
+      WRITE_DATES_AS_TIMESTAMPS: false
 
 # springdoc:
 #   swagger-ui:
