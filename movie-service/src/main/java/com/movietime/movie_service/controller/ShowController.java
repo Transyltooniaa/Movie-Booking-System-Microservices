@@ -8,7 +8,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @RestController
-@RequestMapping("/shows")
+@RequestMapping("/movies/shows")
 public class ShowController {
     private final ShowService service;
     public ShowController(ShowService service) { this.service = service; }
