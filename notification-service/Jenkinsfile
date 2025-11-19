@@ -1,4 +1,4 @@
-// Jenkins declarative pipeline for movie-service
+// Jenkins declarative pipeline for notification-service
 pipeline {
   agent any
   options { timestamps() }
@@ -12,7 +12,7 @@ pipeline {
   }
 
   environment {
-    SERVICE_NAME = 'discovery-server'
+    SERVICE_NAME = 'notification-service'
     DOCKER_REPO = 'transyltoonia'
 
     // macOS: Ensure Jenkins sees Docker CLI
