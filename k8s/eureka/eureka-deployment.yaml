@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: eureka
-          image: spe_project-eureka:latest       # <-- Using your local image
+          image: discovery-server:latest       # <-- Using your local image
           imagePullPolicy: Never                 # <-- VERY IMPORTANT
           ports:
             - containerPort: 8761
