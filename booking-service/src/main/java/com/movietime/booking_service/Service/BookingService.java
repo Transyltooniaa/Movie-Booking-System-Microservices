@@ -52,18 +52,55 @@ public class BookingService {
     public BookingResponse createBooking(CreateBookingRequest req, String userId) {
         Long showId = req.getShowId();
 
-        // 1️⃣ Try locking each seat in Redis
-        for (SeatSelection seat : req.getSeats()) {
-            String key = "lock:show:" + showId + ":seat:" + seat.getSeatId();
-            String value = seat.getRowLabel() + "-" + seat.getSeatNumber() + "-" + seat.getSeatType();
+        // // 1️⃣ Try locking each seat in Redis
+        // for (SeatSelection seat : req.getSeats()) {
+        //     String key = "lock:show:" + showId + ":seat:" + seat.getSeatId();
+        //     String value = seat.getRowLabel() + "-" + seat.getSeatNumber() + "-" + seat.getSeatType();
 
-            Boolean success = redisTemplate.opsForValue()
-                    .setIfAbsent(key, value, LOCK_TTL, TimeUnit.SECONDS);
+        //     Boolean success = redisTemplate.opsForValue()
+        //             .setIfAbsent(key, value, LOCK_TTL, TimeUnit.SECONDS);
 
-            if (Boolean.FALSE.equals(success)) {
-                throw new IllegalStateException("Seat already locked or booked: " + seat.getSeatId());
+        //     if (Boolean.FALSE.equals(success)) {
+        //         throw new IllegalStateException("Seat already locked or booked: " + seat.getSeatId());
+        //     }
+        // }
+// Track successfully locked seats
+        List<String> acquiredLocks = new ArrayList<>();
+
+        try {
+            // 1️⃣ Try locking each seat in Redis
+            for (SeatSelection seat : req.getSeats()) {
+
+                String key = "lock:show:" + showId + ":seat:" + seat.getSeatId();
+                String value = seat.getRowLabel() + "-" + seat.getSeatNumber() + "-" + seat.getSeatType();
+
+                Boolean success = redisTemplate.opsForValue()
+                        .setIfAbsent(key, value, LOCK_TTL, TimeUnit.SECONDS);
+
+                if (Boolean.FALSE.equals(success)) {
+
+                    // 🔄 Rollback previously locked seats
+                    for (String lockedKey : acquiredLocks) {
+                        redisTemplate.delete(lockedKey);
+                    }
+
+                    throw new IllegalStateException("Seat already locked or booked: " + seat.getSeatId());
+                }
+
+                // Keep track of successfully locked seats
+                acquiredLocks.add(key);
             }
+
+        } catch (Exception e) {
+
+            // 🔄 Rollback if any unexpected exception occurs
+            for (String key : acquiredLocks) {
+                redisTemplate.delete(key);
+            }
+
+            throw e;
         }
+
 
         // 2️⃣ Create Booking record
         Booking booking = Booking.builder()
