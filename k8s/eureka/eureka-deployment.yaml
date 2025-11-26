@@ -17,6 +17,11 @@ spec:
         - name: eureka
           image: discovery-server:latest       # <-- Using your local image
           imagePullPolicy: Never                 # <-- VERY IMPORTANT
+          resources:
+            requests:
+              cpu: 100m
+            limits:
+              cpu: 200m
           ports:
             - containerPort: 8761
           env:

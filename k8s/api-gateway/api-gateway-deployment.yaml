@@ -17,6 +17,11 @@ spec:
         - name: api-gateway
           image: api-gateway:latest
           imagePullPolicy: Never
+          resources:
+            requests:
+              cpu: 100m
+            limits:
+              cpu: 200m
           ports:
             - containerPort: 8085
           env:
