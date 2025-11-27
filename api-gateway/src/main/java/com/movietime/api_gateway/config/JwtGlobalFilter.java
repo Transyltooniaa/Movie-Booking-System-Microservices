@@ -35,6 +35,7 @@ public class JwtGlobalFilter implements GlobalFilter, Ordered {
 
         // 2. Allow auth endpoints without JWT
         if (path.startsWith("/auth/") || path.startsWith("/movies/")) {
+            System.out.println("#### ALLOWING WITHOUT JWT: " + path);
             return chain.filter(exchange);
         }
 

@@ -3,8 +3,6 @@ kind: Ingress
 metadata:
   name: movie-app-ingress
   namespace: movie-app
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
   ingressClassName: nginx
   rules:
@@ -12,6 +10,38 @@ spec:
       http:
         paths:
           - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: movie-frontend
+                port:
+                  number: 80
+
+          - path: /auth
+            pathType: Prefix
+            backend:
+              service:
+                name: api-gateway
+                port:
+                  number: 8085
+
+          - path: /movies
+            pathType: Prefix
+            backend:
+              service:
+                name: api-gateway
+                port:
+                  number: 8085
+
+          - path: /bookings
+            pathType: Prefix
+            backend:
+              service:
+                name: api-gateway
+                port:
+                  number: 8085
+
+          - path: /payment
             pathType: Prefix
             backend:
               service:

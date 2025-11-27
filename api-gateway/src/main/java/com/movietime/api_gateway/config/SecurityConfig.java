@@ -26,7 +26,11 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
+        config.addAllowedOrigin("http://movieapp.local:9090");
+        config.addAllowedOrigin("http://movieapp.local");
         config.addAllowedOrigin("http://localhost:3000");
+        config.addAllowedOrigin("http://localhost");
+
         config.addAllowedMethod("*");
         config.addAllowedHeader("*");
         config.setAllowCredentials(true);
