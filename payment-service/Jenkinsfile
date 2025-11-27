@@ -92,12 +92,90 @@ pipeline {
     }
   }
 
+  
+
   post {
     success {
-      echo "Built & pushed ${env.IMAGE_NAME}"
+      echo "Build ${env.BUILD_NUMBER} passed"
+        script {
+            if (fileExists('coverage/lcov-report/index.html')) {
+                publishHTML(target: [
+                    reportDir: 'coverage/lcov-report',
+                    reportFiles: 'index.html',
+                    reportName: 'Jest Coverage Report'
+                ])
+            } else {
+                echo "No coverage report found to publish."
+            }
+        }
+
+        // Send success email
+        emailext(
+          subject: "Build SUCCESS | ${SERVICE_NAME} | Build #${env.BUILD_NUMBER}",
+          body: """
+              <p>Hello Team,</p>
+
+              <p>The CI pipeline for the microservice <b>${SERVICE_NAME}</b> has completed successfully.</p>
+
+              <h3>Build Summary</h3>
+              <table border="1" cellpadding="6" cellspacing="0">
+                  <tr><td><b>Microservice</b></td><td>${SERVICE_NAME}</td></tr>
+                  <tr><td><b>Job Name</b></td><td>${env.JOB_NAME}</td></tr>
+                  <tr><td><b>Build Number</b></td><td>${env.BUILD_NUMBER}</td></tr>
+                  <tr><td><b>Build Status</b></td><td>SUCCESS</td></tr>
+                  <tr><td><b>Triggered By</b></td><td>${env.BUILD_USER ?: 'Webhook / SCM Trigger'}</td></tr>
+                  <tr><td><b>Git Branch</b></td><td>main</td></tr>
+                  <tr><td><b>Docker Image</b></td><td>${IMAGE_NAME}</td></tr>
+                  <tr><td><b>Build URL</b></td>
+                      <td><a href="${env.BUILD_URL}">${env.BUILD_URL}</a></td>
+                  </tr>
+              </table>
+
+              <p>All stages (Checkout, Test, Build, and Push) executed successfully.</p>
+
+              <p>Regards,<br>
+              Jenkins CI System</p>
+          """,
+          mimeType: 'text/html',
+          to: 'Ajitesh.Kumar@iiitb.ac.in'
+      )
+
     }
+
     failure {
-      echo "Build failed or skipped for ${env.SERVICE_NAME}"
+        echo "Build ${env.BUILD_NUMBER} failed"
+        emailext(
+          subject: "Build FAILED | ${SERVICE_NAME} | Build #${env.BUILD_NUMBER}",
+          body: """
+              <p>Hello Team,</p>
+
+              <p>The CI pipeline for the microservice <b>${SERVICE_NAME}</b> has failed.</p>
+
+              <h3>Failure Summary</h3>
+              <table border="1" cellpadding="6" cellspacing="0">
+                  <tr><td><b>Microservice</b></td><td>${SERVICE_NAME}</td></tr>
+                  <tr><td><b>Job Name</b></td><td>${env.JOB_NAME}</td></tr>
+                  <tr><td><b>Build Number</b></td><td>${env.BUILD_NUMBER}</td></tr>
+                  <tr><td><b>Build Status</b></td><td>FAILED</td></tr>
+                  <tr><td><b>Git Branch</b></td><td>main</td></tr>
+                  <tr><td><b>Docker Image (if built)</b></td><td>${env.IMAGE_NAME ?: 'Not Generated'}</td></tr>
+                  <tr><td><b>Build Logs</b></td>
+                      <td>
+                        <a href="${env.BUILD_URL}console">
+                          View Console Output
+                        </a>
+                      </td>
+                  </tr>
+              </table>
+
+              <p>Immediate attention is required to diagnose and resolve the failure.</p>
+
+              <p>Regards,<br>
+              Jenkins CI System</p>
+          """,
+          mimeType: 'text/html',
+          to: 'Ajitesh.Kumar@iiitb.ac.in'
+      )
     }
   }
 }

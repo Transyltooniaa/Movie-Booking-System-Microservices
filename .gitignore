@@ -72,3 +72,7 @@ yarn-error.log*
 ### BACKUP FILES ###
 *.bak
 *.tmp
+
+docker-compose.yml
+api-gateway/src/main/resources/logback-spring.xml
+elk/
