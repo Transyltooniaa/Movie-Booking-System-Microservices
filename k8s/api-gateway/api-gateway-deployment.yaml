@@ -15,8 +15,8 @@ spec:
     spec:
       containers:
         - name: api-gateway
-          image: api-gateway:latest
-          imagePullPolicy: Never
+          image: ketan803/api-gateway:main-8  # or use your tagged version
+          imagePullPolicy: Always
           resources:
             requests:
               cpu: 100m
