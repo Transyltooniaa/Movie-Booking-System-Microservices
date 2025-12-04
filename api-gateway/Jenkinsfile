@@ -92,6 +92,23 @@ pipeline {
         }
       }
     }
+    stage('Deploy to Minikube') {
+        when { expression { currentBuild.currentResult == 'SUCCESS' } }
+        steps {
+            script {
+                sh """
+                    echo "Switching to Minikube context..."
+                    sudo -u ketan kubectl config use-context minikube
+
+                    echo "Updating image for deployment..."
+                    sudo -u ketan kubectl set image deployment/${SERVICE_NAME} ${SERVICE_NAME}=${IMAGE_NAME} --record
+
+                    echo "Waiting for rollout to complete..."
+                    sudo -u ketan kubectl rollout status deployment/${SERVICE_NAME}
+                """
+            }
+        }
+    }
   }
 
 
