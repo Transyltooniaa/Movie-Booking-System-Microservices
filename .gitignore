@@ -73,6 +73,8 @@ yarn-error.log*
 *.bak
 *.tmp
 
+ngrok-v3-stable-linux-amd64.tgz
+
 docker-compose.yml
 api-gateway/src/main/resources/logback-spring.xml
 elk/
