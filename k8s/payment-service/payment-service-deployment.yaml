@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: payment-service
-          image: payment-service:main-1
+          image: ketan803/payment-service:main-1
           imagePullPolicy: Always
           ports:
             - containerPort: 8089
