@@ -15,8 +15,8 @@ spec:
     spec:
       containers:
         - name: notification-service
-          image: notification-service:latest
-          imagePullPolicy: Never
+          image: ketan803/notification-service:main-1
+          imagePullPolicy: Always
           ports:
             - containerPort: 8088
           resources:
