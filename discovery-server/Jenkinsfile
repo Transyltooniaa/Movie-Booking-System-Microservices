@@ -13,7 +13,8 @@ pipeline {
 
   environment {
     SERVICE_NAME = 'discovery-server'
-    DOCKER_REPO = 'transyltoonia'
+    // DOCKER_REPO = 'transyltoonia'
+    DOCKER_REPO = 'ketan803'   
 
     // macOS: Ensure Jenkins sees Docker CLI
     PATH = "/usr/local/bin:/opt/homebrew/bin:/Applications/Docker.app/Contents/Resources/bin:${env.PATH}"
@@ -90,6 +91,7 @@ pipeline {
         }
       }
     }
+    
   }
 
   
