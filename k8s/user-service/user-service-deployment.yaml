@@ -35,14 +35,19 @@ spec:
               value: "docker"
 
             - name: SPRING_DATASOURCE_URL
-              value: "jdbc:postgresql://user-db:5432/user_db"
+              value: jdbc:postgresql://user-pg:5432/user_db
 
             - name: SPRING_DATASOURCE_USERNAME
-              value: "user_user"
+              valueFrom:
+                secretKeyRef:
+                  name: user-service.user-pg.credentials.postgresql.acid.zalan.do
+                  key: username   # THIS RETURNS: user_service
 
             - name: SPRING_DATASOURCE_PASSWORD
-              value: "user_pass"
-
+              valueFrom:
+                secretKeyRef:
+                  name: user-service.user-pg.credentials.postgresql.acid.zalan.do
+                  key: password
             - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
               value: "http://eureka:8761/eureka/"
 
