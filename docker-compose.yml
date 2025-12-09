@@ -231,6 +231,8 @@ services:
       - "8761:8761"
     networks:
       - movie-net
+    mem_limit: 600m
+    cpus: 0.6
 
   # ✔ API Gateway (folder: api-gateway)
   api_gateway:
@@ -242,6 +244,8 @@ services:
       - eureka
     networks:
       - movie-net
+    mem_limit: 600m
+    cpus: 0.6
 
   user_service:
     build: ./user-service
@@ -253,6 +257,8 @@ services:
       - eureka
     networks:
       - movie-net
+    mem_limit: 600m
+    cpus: 0.6
 
   # ✔ Booking service (folder: booking-service)
   booking_service:
@@ -267,6 +273,8 @@ services:
       - eureka
     networks:
       - movie-net
+    mem_limit: 600m
+    cpus: 0.6
 
   # ✔ Payment service (folder: payment-service)
   payment_service:
@@ -279,6 +287,8 @@ services:
       - eureka
     networks:
       - movie-net
+    mem_limit: 600m
+    cpus: 0.6
 
   # ✔ Movie service (folder: movie-service)
   movie_service:
@@ -291,6 +301,8 @@ services:
       - eureka
     networks:
       - movie-net
+    mem_limit: 600m
+    cpus: 0.6
 
   # ✔ Notification service (folder: notification-service)
   notification_service:
@@ -303,6 +315,8 @@ services:
       - eureka
     networks:
       - movie-net
+    mem_limit: 600m
+    cpus: 0.6
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
@@ -310,30 +324,46 @@ services:
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
-      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+
     ports:
       - "9200:9200"
     networks:
       - movie-net
     volumes:
       - es_data:/usr/share/elasticsearch/data
+    mem_limit: 1g
+    cpus: 1.5
+
+
 
   kibana:
     image: docker.elastic.co/kibana/kibana:8.15.0
     container_name: kibana
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - xpack.security.enabled=false
+      - xpack.fleet.enabled=false
+      - xpack.reporting.enabled=false
+      - xpack.ml.enabled=false
+      - xpack.task_manager.enabled=false
+      - xpack.monitoring.enabled=false
+      - TELEMETRY_ENABLED=false
+      - NODE_OPTIONS=--max-old-space-size=512
     depends_on:
       - elasticsearch
     ports:
       - "5601:5601"
     networks:
       - movie-net
-
+    mem_limit: 512m
+    cpus: 1.0
 
   logstash:
     image: docker.elastic.co/logstash/logstash:8.15.0
     container_name: logstash
+    environment:
+      - LS_JAVA_OPTS=-Xms256m -Xmx256m
     depends_on:
       - elasticsearch
     ports:
@@ -342,6 +372,8 @@ services:
       - movie-net
     volumes:
       - ./elk/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+    mem_limit: 512m
+    cpus: 1.0
 
   filebeat:
     image: docker.elastic.co/beats/filebeat:8.15.0
