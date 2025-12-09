@@ -27,7 +27,7 @@ pipeline {
                         "movie-service"     : "movie-service-pipeline",
                         "booking-service"   : "booking-service-pipeline",
                         "payment-service"   : "Payment-Service-Pipeline",
-                        "notification-service" : "Notification-Service-Pipeline"
+                        "notification-service" : "Notification-Service-Pipeline",
                         "discovery-server"  : "Discovery-Service-Pipeline"
                     ]
 
