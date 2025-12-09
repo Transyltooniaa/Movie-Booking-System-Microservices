@@ -75,5 +75,4 @@ yarn-error.log*
 
 ngrok-v3-stable-linux-amd64.tgz
 
-k8s/elk-namespace.yaml
-k8s/elk
+
