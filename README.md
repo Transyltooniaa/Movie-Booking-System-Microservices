@@ -403,9 +403,3 @@ It is suitable for:
 
 ⭐ If this project was helpful, consider starring the repository!
 
-```
-
----
-
-If required, a **separate README for Kubernetes only**, **Jenkins only**, or **ELK only** can also be generated.
-```
