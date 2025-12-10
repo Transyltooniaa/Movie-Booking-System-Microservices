@@ -1,4 +1,4 @@
-FROM eclipse-temurin:17-jdk
+FROM eclipse-temurin:17-jre
 
 WORKDIR /app
 
@@ -7,4 +7,3 @@ ENV SPRING_PROFILES_ACTIVE=docker
 EXPOSE 8087
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
-
