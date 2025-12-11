@@ -403,6 +403,7 @@ Each service supports:
 * Terraform Infrastructure as Code
 * GitOps with ArgoCD
 
+---
 ## Conclusion
 
 This project demonstrates the successful development of a cloud-native backend system using a microservices architecture. By integrating Spring Boot services with Docker, Kubernetes, Jenkins-based CI/CD, RabbitMQ, Redis, and the ELK stack, the platform achieves modularity, scalability, and reliable operations.
@@ -419,7 +420,7 @@ Key accomplishments include:
 The project provided practical experience with modern DevOps workflows and distributed system principles, strengthening understanding of cloud infrastructure, automation, and scalable backend architecture.
 
 Overall, the work shows how contemporary tools and methodologies can be combined to build an efficient and maintainable microservices-based backend system.
-
+----
 
 ⭐ If this project was helpful, consider starring the repository!
 
