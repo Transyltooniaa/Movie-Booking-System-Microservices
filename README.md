@@ -230,29 +230,51 @@ kubectl apply -f k8s/notification-service/
 kubectl apply -f k8s/ingress/
 ```
 
----
-
 ## 🔄 CI/CD with Jenkins
 
-Each microservice has its **own Jenkins pipeline**:
+The MovieTime platform uses a fully automated CI/CD setup powered by Jenkins.  
+Each microservice has its **own Jenkins pipeline**, and a central **Master Orchestrator Pipeline** detects changes and triggers only the affected services.
 
-### Pipeline Stages
+---
 
-1. Source Code Checkout
-2. Change Detection
-3. Maven Build & Unit Tests
-4. Docker Image Build
-5. Docker Push
-6. Kubernetes Rolling Update
-7. Deployment Verification
+### 🚀 Pipeline Stages (Per Microservice)
+
+Each microservice pipeline follows identical stages:
+
+1. **Source Code Checkout**
+2. **Change Detection**
+3. **Maven Build & Unit Tests**
+4. **Docker Image Build**
+5. **Docker Push to Docker Hub**
+6. **Kubernetes Rolling Update**
+7. **Deployment Verification (Rollout Status Check)**
+
+---
+
+### 🧠 Master Jenkins Orchestrator
+
+The orchestrator pipeline:
+
+- Detects which microservices were modified in the latest Git push  
+- Triggers only those microservice pipelines  
+- Runs them **in parallel** for faster execution  
+- Re-applies Kubernetes infra when K8s manifests change  
+- Prevents unnecessary builds and deployments  
+
+This creates an efficient, scalable automation pipeline for the entire system.
+
+---
 
 ### 🔁 CI/CD Flow
 
 ```
-Git Push → Jenkins → Build → Test → Docker → Kubernetes → Live Production
+Git Push 
+   → Jenkins Orchestrator 
+      → Trigger Affected Pipelines 
+         → Build & Test 
+            → Docker Image Build & Push 
+               → Kubernetes Deployment (Minikube)
 ```
-
----
 
 ## 📨 Messaging with RabbitMQ
 
